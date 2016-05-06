@@ -1,0 +1,173 @@
+---
+title: "chapter11"
+author: "David Chiu"
+date: "Tuesday, January 13, 2015"
+output: html_document
+---
+Performing Dimension Reduction With PCA
+```
+data(swiss)
+swiss = swiss[,-1]
+swiss.pca = prcomp(swiss,
+center = TRUE,
+scale  = TRUE)
+swiss.pca
+summary(swiss.pca)
+predict(swiss.pca, newdata=head(swiss, 1))
+swiss.princomp = princomp(swiss,
+center = TRUE,
+scale  = TRUE)
+swiss.princomp
+summary(swiss.princomp)
+predict(swiss.princomp, swiss[1,])
+install.packages("psych")
+install.packages("GPArotation")
+library(psych)
+swiss.principal = principal(swiss, nfactors=5, rotate="none")
+swiss.principal
+```
+Determining Number of Principal Components Using Scree Test
+```
+screeplot(swiss.pca, type="barplot")
+screeplot(swiss.pca, type="line")
+help(screeplot)
+install.packages("nFactors")
+library(nFactors)
+ev = eigen(cor(swiss))
+ap = parallel(subject=nrow(swiss),var=ncol(swiss),rep=100,cent=.05)
+nS = nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+plotnScree(nS)
+```
+Determining Number of Principal Components Using Kaiser Method
+```
+swiss.pca$sdev 
+swiss.pca$sdev ^ 2
+which(swiss.pca$sdev ^ 2> 1)
+screeplot(swiss.pca, type="line")
+abline(h=1, col="red", lty= 3)
+```
+Visualizing Multivariate Data Using Biplot
+```
+ plot(swiss.pca$x[,1], swiss.pca$x[,2], xlim=c(-4,4))
+text(swiss.pca$x[,1], swiss.pca$x[,2], rownames(swiss.pca$x), cex=0.7, pos=4, col="red")
+biplot(swiss.pca)
+install.packages("devtools")
+library(ggbiplot)
+g <- ggbiplot(swiss.pca, obs.scale = 1, var.scale = 1, 
+ellipse = TRUE, 
+circle = TRUE)
+```
+Performing Dimension Reduction With Metric MDS
+```
+print(g)
+swiss.dist =dist(swiss)
+swiss.mds = cmdscale(swiss.dist, k=2)
+plot(swiss.mds[,1], swiss.mds[,2], type = "n", main = "cmdscale (stats)")
+text(swiss.mds[,1], swiss.mds[,2], rownames(swiss), cex = 0.9, xpd = TRUE)
+library(MASS)
+swiss.nmmds = isoMDS(swiss.dist, k=2)
+plot(swiss.nmmds$points, type = "n", main = "isoMDS (MASS)")
+text(swiss.nmmds$points, rownames(swiss), cex = 0.9, xpd = TRUE)
+swiss.sh <- Shepard(swiss.dist, swiss.mds$points)
+plot(swiss.sh, pch = ".")
+lines(swiss.sh$x, swiss.sh$yf, type = "S")
+swiss.dist = dist(swiss)
+swiss.mds = cmdscale(swiss.dist, k=2)
+plot(swiss.mds[,1], swiss.mds[,2], type="n")
+text(swiss.mds[,1], swiss.mds[,2], rownames(swiss), cex = 0.9, xpd = TRUE)
+swiss.pca = prcomp(swiss)
+text(-swiss.pca$x[,1],-swiss.pca$x[,2], rownames(swiss), 
+     ,col="blue", adj = c(0.2,-0.5),cex = 0.9, xpd = TRUE)
+```
+Dimension Reduction With SVD
+```
+swiss.svd <- svd(swiss)
+plot(swiss.svd$d^2/sum(swiss.svd$d^2), type="l", xlab=" Singular vector", ylab = "Variance explained")
+plot(cumsum(swiss.svd$d^2/sum(swiss.svd$d^2)), type="l", xlab="Singular vector", ylab = "Cumulative percent of variance explained") 
+swiss.recon <- swiss.svd$u[,1] %*% diag(swiss.svd$d[1], length(1), length(1)) %*% t(swiss.svd$v[,1])
+par(mfrow=c(1,2))
+image(as.matrix(swiss), main="swiss data Image")
+image(swiss.recon,  main="Reconstructed Image")
+svd.m <- svd(scale(swiss))
+svd.m$v
+pca.m <- prcomp(swiss,scale=TRUE)
+pca.m$rotation
+```
+Compressing Image With SVD
+```
+install.packages("bmp")
+library(bmp)
+lenna = read.bmp("lenna512.bmp")
+lenna = t(lena)[,nrow(lenna):1]
+image(lenna) 
+lenna.svd = svd(scale(lena))
+plot(lenna.svd$d^2/sum(lenna.svd$d^2), type="l", xlab=" Singular vector", ylab = "Variance explained")
+length(lenna.svd$d)
+min(which(cumsum(lena.svd$d^2/sum(lenna.svd$d^2))> 0.9))
+lena_compression = function(dim){
+    u=as.matrix(lena.svd$u[, 1:dim])
+    v=as.matrix(lena.svd$v[, 1:dim])
+    d=as.matrix(diag(lena.svd$d)[1:dim, 1:dim])
+    image(u%*%d%*%t(v))
+}
+lenna_compression(18)
+min(which(cumsum(lena.svd$d^2/sum(lena.svd$d^2))> 0.99))
+lenna_compression(92)
+```
+Performing Non-linear Dimension Reduction With ISOMAP
+```
+install.packages("RnavGraphImageData")
+install.packages("vegan")
+library(RnavGraphImageData)
+library(vegan)
+data(digits)
+sample.digit = matrix(digits[,3000],ncol = 16, byrow=FALSE)
+image(t(sample.digit)[,nrow(sample.digit):1])
+set.seed(2)
+digit.idx = sample(1:ncol(digits),size = 600)
+digit.select = digits[,digit.idx]
+digits.Transpose <- t(digit.select)
+digit.dist = vegdist(digits.Transpose, method="euclidean")
+digit.isomap = isomap(dise,k = 8, ndim=6, fragmentedOK = TRUE)
+plot(digit.isomap)
+digit.st = spantree(digit.dist)
+digit.plot <- plot(digit.isomap, main="isomap k=8")
+lines(digit.st, digit.plot, col="red")
+install.packages("RnavGraph")
+source("http://bioconductor.org/biocLite.R")
+biocLite("graph")
+library(RnavGraph)
+digit.group = rep(c(1:9,0), each = 1100)
+digit.ng_data = ng_data(name = "ISO_digits",
+data = data.frame(digit.isomap$points),
+shortnames = paste('i',1:6, sep = ''),
+group = digit.group[digit.idx],
+labels = as.character(digits_group[digit.idx]))
+ V = shortnames(digit.ng_data)
+ G = completegraph(V)
+ LG =linegraph(G)
+ LGnot = complement(LG)
+ ng.LG = ng_graph(name = "3D Transition", graph = LG)
+ng.LGnot = ng_graph(name = "4D Transition", graph = LGnot)
+ng.i.digits <- ng_image_array_gray('USPS Handwritten Digits',
+p.digits,16,16,invert = TRUE,
+img_in_row = FALSE)
+vizDigits1 <- ng_2d(data = digit.ng_data, graph = ng.LG, images = ng.i.digits)
+vizDigits2 <- ng_2d(data = digit.ng_data, graph = ng.LGnot, images = ng.i.digits)
+nav <- navGraph(data = ng.iso.digits, graph = list(ng.LG, ng.LGnot), viz = list(vizDigits1, vizDigits2))
+```
+Performing Non-linear Dimension Reduction With LLE
+```
+install.packages("lle")
+library(lle)
+data( lle_scurve_data )
+X <- lle_scurve_data
+results <- lle( X=X , m=2, k=12,  id=TRUE)
+str( results )
+plot( results$Y, main="embedded data", xlab=expression(y[1]), ylab=expression(y[2]) )
+plot_lle( results$Y, X, FALSE, col="red", inter=TRUE )
+source("http://bioconductor.org/biocLite.R")
+biocLite("RDRToolbox")
+library(RDRToolbox)
+```
+

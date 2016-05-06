@@ -1,0 +1,146 @@
+---
+title: "chapter4"
+author: "David Chiu"
+date: "Monday, January 12, 2015"
+output: html_document
+---
+
+Simple Linear Regression with lm
+
+```{r}
+# install.packages("car")
+library(car)
+data(Quartet)
+str(Quartet)
+plot(Quartet$x, Quartet$y1)
+lmfit = lm(Quartet$y1~Quartet$x)
+abline(lmfit, col="red")   
+lmfit
+
+
+plot(Quartet$x, Quartet$y1)
+lmfit2 = lsfit(Quartet$x,Quartet$y1)
+abline(lmfit2, col="red")  
+
+
+```
+
+Summarizing Linear Model Fits
+
+```{r}
+summary(lmfit)
+#?summary.lm
+coefficients(lmfit)
+confint(lmfit, level=0.95) 
+fitted(lmfit) 
+residuals(lmfit) 
+anova(lmfit) 
+vcov(lmfit) 
+influence(lmfit)
+
+```
+Using Linear Regression to Predict Unknown Values
+
+```{r}
+plot(Quartet$x, Quartet$y2)
+lmfit = lm(Quartet$y2~ I(Quartet$x)+I(Quartet$x^2))
+lmfit = lm(Quartet$y2~poly(Quartet$x,2))
+lines(sort(Quartet$x), lmfit$fit[order(Quartet$x)], col = "red")
+plot(Quartet$x, Quartet$y2)
+lmfit = lm(Quartet$y2~ I(Quartet$x)+I(Quartet$x^2))
+```
+
+Robust Linear Regression With rlm 
+
+```{r}
+library(MASS)
+plot(Quartet$x, Quartet$y3)
+lmfit = rlm(Quartet$y3~Quartet$x)
+abline(lmfit, col="red")
+plot(Quartet$x, Quartet$y3)
+lmfit = lm(Quartet$y3~Quartet$x)
+abline(lmfit, col="red")
+```
+
+A Case Study of Linear Regression On SLID Data
+
+```{r}
+library(car)
+data(SLID)
+str(SLID)
+attach(SLID)
+par(mfrow=c(2,2))
+plot(wages ~ language)
+plot(wages ~ age)
+plot(wages ~ education)
+plot(wages ~ sex)
+lmfit <- lm(wages ~ ., data = SLID)
+summary(lmfit)
+lmfit = lm(wages ~ age + sex + education, data = SLID)
+summary(lmfit)
+par(mfrow=c(2,2))
+plot(lmfit)
+par(mfrow=c(2,2))
+plot(lmfit)
+#?SLID
+```
+
+Gaussian Model For Generalized Linear Regression
+```{r}
+lmfit1 = glm(wages ~ age + sex + education, data = SLID, family=gaussian)
+summary(lmfit1)
+lmfit2 = lm(wages ~ age + sex + education, data = SLID)
+summary(lmfit2)
+anova(lmfit1, lmfit2)
+```
+
+Poisson Model For Generalized Linear Regression 
+
+```{r}
+data(warpbreaks)
+head(warpbreaks)
+rs1 = glm(breaks ~ tension, data=warpbreaks, family="poisson")
+summary(rs1)
+```
+Binomial Model For Generalized Linear Regression 
+```{r}
+data(mtcars)
+head(mtcars$vs)
+lm1 = glm(vs ~ hp+mpg+gear,data=mtcars, family=binomial)
+summary(lm1)
+lm1 = glm(vs ~ hp+mpg+gear,data=mtcars, family=binomial(link="probit"))
+#?family
+```
+Fit Generalized Addictive Model to Data
+```{r}
+#install.packages("mgcv")
+library(mgcv)
+
+#install.package("MASS")
+library(MASS)
+attach(Boston)
+str(Boston)
+
+fit <- gam(dis ~ s(nox))
+summary(fit)
+#? bam
+
+```
+Visualize Generalized Addictive Model
+```{r}
+plot(nox, dis)
+x <- seq(0, 1, length = 500)
+y <- predict(fit, data.frame(nox = x))
+lines(x, y, col = "red", lwd = 2)
+plot(fit)
+fit2=gam(medv~crim+zn+crim:zn, data=Boston)
+vis.gam(fit2)
+```
+
+Diagnostic of Generalized Addictive Model 
+
+```{r}
+gam.check(fit)
+#?gam.check
+#?choose.k
+```

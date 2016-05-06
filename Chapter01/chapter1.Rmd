@@ -1,0 +1,111 @@
+---
+title: "chapter1"
+author: "David Chiu"
+date: "Tuesday, January 13, 2015"
+output: html_document
+---
+
+Reading and Writing Data
+```
+library()
+chooseCRANmirror()
+install.packages(“e1071”)
+update.packages(“e1071”)
+library(e1071)
+help(package ="e1071")
+help(e1071::svm)
+?e1071::svm
+help.search(“svm”)
+??svm
+args(lm)
+example(lm)
+demo(lm)
+demo()
+
+data()
+data(iris)
+class(iris)
+save(iris, file="myData.RData")
+load("myData.RData")
+test.data = read.table(header = TRUE, text = "
+a b
+1 2
+3 4
+")
+class(test.data)
+write.table(test.data, file = "test.txt" , sep = " ")
+write.csv(test.data, file = "test.csv")
+head(csv.data)
+install.packages(“WriteXLS”)
+library(“WriteXLS”)
+WriteXLS("iris", ExcelFileName="iris.xls")
+```
+Data Manipulation
+```
+
+data(iris)
+Sepal.iris = iris[c("Sepal.Length", "Sepal.Width")]
+str(Sepal.iris)
+Five.Sepal.iris = iris[1:5, c("Sepal.Length", "Sepal.Width")]
+str(Five.Sepal.iris)
+setosa.data = iris[iris$Species=="setosa",1:5]
+str(setosa.data)
+which(iris$Species=="setosa")
+setosa.data = iris[which(iris$Species=="setosa"),1:5]
+str(setosa.data)
+Sepal.data = subset(iris, select=c("Sepal.Length", "Sepal.Width")
+str(Sepal.data)
+setosa.data = subset(iris, Species =="setosa")
+str(setosa.data)
+  For most of the time, you may want to union or intersect condition while subsetting data. Thus, OR and AND operation can be further employed for this purpose. For example, one would like to retrieve data with Petal.Width >=0.2 and Petal.Length < = 1.4
+example.data= subset(iris, Petal.Length <=1.4 & Petal.Width >= 0.2, select=Species )
+str(example.data)
+flower.type = data.frame(Species = "setosa", Flower = "iris")
+merge(flower.type, iris[1:3,], by ="Species")
+head(iris[order(iris$Sepal.Length, decreasing = TRUE),])
+sub("e", "q", names(iris))
+gsub("e", "q", names(iris))
+```
+Basic Statistic
+```
+data(iris)
+class(iris)
+mean(iris$Sepal.Length)
+sd(iris$Sepal.Length)
+var(iris$Sepal.Length)
+min(iris$Sepal.Length)
+max(iris$Sepal.Length)
+median(iris$Sepal.Length)
+range(iris$Sepal.Length)
+quantile(iris$Sepal.Length)
+sapply(iris[1:4], mean, na.rm=TRUE)
+summary(iris)
+cor(iris[,1:4])
+cov(iris[,1:4])
+t.test(iris$Petal.Width[iris$Species=="setosa"], 
+       iris$Petal.Width[iris$Species=="versicolor"])
+cor.test(iris$Sepal.Length, iris$Sepal.Width)
+aggregate(x=iris[,1:4],by=list(iris$Species),FUN=mean)
+ library(reshape)
+ iris.melt <- melt(iris,id='Species')
+cast(Species~variable,data=iris.melt,mean,
+     subset=Species %in% c('setosa','versicolor'),
+     margins='grand_row')
+
+```
+Data Visualization 
+```
+data(iris)
+table.iris = table(iris$Species)
+table.iris
+pie(table.iris)
+boxplot(Petal.Width ~ Species, data = iris)
+plot(x=iris$Petal.Length, y=iris$Petal.Width, col=iris$Species)
+pairs(iris[1:4], main = "Edgar Anderson's Iris Data", pch = 21, bg = c("red", "green3", "blue")[unclass(iris$Species)])
+```
+Dataset for Machine Learning
+```
+iris.data = read.csv(url("http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"), header = FALSE,  col.names = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species"))
+head(iris.data)
+```
+

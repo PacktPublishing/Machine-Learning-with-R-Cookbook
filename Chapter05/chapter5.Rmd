@@ -1,0 +1,108 @@
+---
+title: "Chapter5"
+author: "David Chiu"
+date: "Tuesday, January 06, 2015"
+output: html_document
+---
+```
+install.packages("C50")
+```
+```{r}
+library(C50)
+data(churn)
+str(churnTrain)
+churnTrain = churnTrain[,! names(churnTrain) %in% c("state", "area_code", "account_length") ]
+set.seed(2)
+ind <- sample(2, nrow(churnTrain), replace = TRUE, prob=c(0.7, 0.3))
+trainset = churnTrain[ind == 1,]
+testset = churnTrain[ind == 2,]
+dim(trainset)
+dim(testset)
+split.data = function(data, p = 0.7, s = 666){
+    set.seed(s)
+    index = sample(1:dim(data)[1])
+    train = data[index[1:floor(dim(data)[1] * p)], ]
+    test = data[index[((ceiling(dim(data)[1] * p)) + 1):dim(data)[1]], ]
+    return(list(train = train, test = test))
+} 
+```
+```{r}
+library(rpart)
+churn.rp <- rpart(churn ~ ., data=trainset)
+churn.rp 
+printcp(churn.rp)
+plotcp(churn.rp)
+summary(churn.rp)
+```
+```
+?rpart 
+?printcp
+?summary.rpart
+```{r}
+plot(churn.rp, margin= 0.1)
+text(churn.rp, all=TRUE, use.n = TRUE)
+plot(churn.rp, uniform=TRUE, branch=0.6, margin=0.1)
+text(churn.rp, all=TRUE, use.n = TRUE)
+predictions <- predict(churn.rp, testset, type="class")
+table(testset$churn, predictions)
+```
+```{r}
+library(caret)
+confusionMatrix(table(predictions, testset$churn))
+min(churn.rp$cptable[,"xerror"])
+which.min(churn.rp$cptable[,"xerror"])
+churn.cp = churn.rp$cptable[7,"CP"]
+churn.cp
+
+prune.tree <- prune(churn.rp, cp= churn.cp)
+plot(prune.tree, margin= 0.1)
+text(prune.tree, all=TRUE , use.n=TRUE)
+predictions <- predict(prune.tree, testset, type="class")
+table(testset$churn, predictions)
+confusionMatrix(table(predictions, testset$churn))
+
+library(party)
+ctree.model <- ctree(churn ~ . , data = trainset)
+ctree.model
+#help("BinaryTree-class")
+plot(ctree.model)
+daycharge.model <- ctree(churn ~ total_day_charge, data = trainset)
+plot(daycharge.model)
+
+#?plot.BinaryTree
+ctree.predict = predict(ctree.model ,testset)
+table(ctree.predict, testset$churn)
+confusionMatrix(table(ctree.predict, testset$churn))
+tr <- treeresponse(ctree.model, newdata = testset[1:5,])
+tr
+
+#install.packages("class")
+library(class)
+levels(trainset$international_plan) = list("0"="no", "1"="yes")
+levels(trainset$voice_mail_plan) = list("0"="no", "1"="yes")
+levels(testset$international_plan) = list("0"="no", "1"="yes")
+levels(testset$voice_mail_plan) = list("0"="no", "1"="yes")
+churn.knn  = knn(trainset[,! names(trainset) %in% c("churn")], testset[,! names(testset) %in% c("churn")], trainset$churn, k=3)
+summary(churn.knn)
+table(testset$churn, churn.knn)
+confusionMatrix(table(testset$churn, churn.knn))
+fit <- glm(churn ~ ., data = trainset, family=binomial)
+summary(fit)
+pred = predict(fit,testset, type="response")
+Class = pred >.5
+summary(Class)
+tb = table(testset$churn,Class)
+tb
+churn.mod = ifelse(testset$churn == "yes", 1, 0)
+pred_class = churn.mod
+pred_class[pred<=.5] = 1- pred_class[pred<=.5]
+ctb = table(churn.mod, pred_class)
+ctb
+confusionMatrix(ctb)
+library(e1071) 
+classifier<-naiveBayes(trainset[, !names(trainset) %in% c("churn")], trainset$churn)
+classifier
+bayes.table = table(predict(classifier, testset[, !names(testset) %in% c("churn")]), testset$churn)
+bayes.table
+confusionMatrix(bayes.table)
+```

@@ -1,0 +1,173 @@
+---
+title: "chapter12"
+author: "David Chiu"
+date: "Tuesday, January 13, 2015"
+output: html_document
+---
+Installing rmr2
+```
+install.packages(c("codetools", "Rcpp", "RJSONIO", "bitops", "digest", "functional", "stringr", "plyr", "reshape2", "rJava", "caTools"))
+q()
+library(rmr2)
+```
+Installing rhdfs
+```
+Sys.setenv(HADOOP_CMD="/usr/bin/hadoop")
+Sys.setenv(HADOOP_STREAMING="/usr/lib/hadoop-mapreduce/hadoop-streaming-2.5.0-cdh5.2.0.jar")
+library(rhdfs)
+hdfs.init()
+```
+Operating HDFS Filesystem With rhdfs
+```
+Sys.setenv(HADOOP_CMD="/usr/bin/hadoop")
+Sys.setenv(HADOOP_STREAMING="/usr/lib/hadoop-mapreduce/hadoop-streaming-2.5.0-cdh5.2.0.jar")
+library(rhdfs)
+hdfs.init ()
+hdfs.put('word.txt', './')
+hdfs.ls('./')
+hdfs.copy(‘word.txt’, ‘wordcnt.txt’)
+hdfs.move('wordcnt.txt', ‘./data/wordcnt.txt')
+hdfs.delete(‘./data/‘)
+hdfs.rm(‘./data/‘)
+hdfs.get(word.txt', '/home/cloudera/word.txt')
+hdfs.chmod('test', permissions= '777')
+hdfs.file.info(‘./’)
+f = hdfs.file("iris.txt","w")
+data(iris)
+hdfs.write(iris,f)
+hdfs.close(f)
+f = hdfs.file("iris.txt", "r")
+dfserialized <- hdfs.read(f)
+df <- unserialize(dfserialized)
+df
+hdfs.close(f)
+```
+Implementing Word Count With RHadoop
+```
+Sys.setenv(HADOOP_CMD="/usr/bin/hadoop")
+Sys.setenv(HADOOP_STREAMING="/usr/lib/hadoop-mapreduce/hadoop-streaming-2.5.0-cdh5.2.0.jar ")
+library(rmr2) 
+library(rhdfs) 
+hdfs.init() 
+hdfs.mkdir(“/user/cloudera/wordcount/data”)
+hdfs.put("wc_input.txt", "/user/cloudera/wordcount/data")
+map <- function(.,lines) { keyval(
+  unlist(
+    strsplit(
+      x = lines, 
+      split = " +")),
+  1)}
+reduce <- function(word, counts) { 
+  keyval(word, sum(counts)) 
+}
+hdfs.root <- 'wordcount' 
+hdfs.data <- file.path(hdfs.root, 'data') 
+hdfs.out <- file.path(hdfs.root, 'out') 
+wordcount <- function (input, output=NULL) { 
+ mapreduce(input=input, output=output, input.format="text", map=map, 
+ reduce=reduce) 
+} 
+out <- wordcount(hdfs.data, hdfs.out)
+results <- from.dfs(out) 
+results$key[order(results$val, decreasing = TRUE)][1:10]
+```
+Comparing Performance Between R MapReduce Program And Standard R Program
+```
+a.time <- proc.time() 
+small.ints2=1:100000 
+result.normal = sapply(small.ints2, function(x) x^2) 
+proc.time() - a.time
+b.time <- proc.time() 
+small.ints= to.dfs(1:100000) 
+result = mapreduce(input = small.ints, map = function(k,v)   		cbind(v,v^2)) 
+proc.time() - b.time
+
+```
+Testing and Debugging rmr2 Program
+```
+rmr.options(backend = 'local')
+b.time <- proc.time() 
+small.ints= to.dfs(1:100000) 
+result = mapreduce(input = small.ints, map = function(k,v) 			cbind(v,v^2)) 
+proc.time() - b.time
+out = mapreduce(to.dfs(1), map = function(k, v) rmr.str(v))
+
+help(rmr.options)
+```
+Installing plyrmr
+```
+Install.packages(c(“ Rcurl”, “httr”),  dependencies = TRUE
+Install.packages(“devtools”, dependencies = TRUE)
+library(devtools)
+install_github("pryr", "hadley")
+install.packages(c(“ R.methodsS3”, “hydroPSO”),  dependencies = TRUE)
+q()
+library(plyrmr)
+help(package=plyrmr) 
+```
+Manipulating Data With plyrmr 
+```
+library(rmr2)
+library(plyrmr)
+plyrmr.options(backend="local")
+data(Titanic)
+titanic = data.frame(Titanic)
+where(
+   Titanic, 
+Freq >=100)
+titanic %|% where(Freq >=100)
+tidata = to.dfs(data.frame(Titanic), output = '/tmp/titanic')
+tidata
+input(tidata) %|% transmute(sum(Freq))
+input(tidata) %|% group(Sex) %|% transmute(sum(Freq))
+sample(input(tidata), n=10)
+convert_tb = data.frame(Label=c("No","Yes"), Symbol=c(0,1))
+as.data.frame(plyrmr::merge(input(tidata), input(ctb), by.x="Survived", by.y="Label"))
+file.remove('convert')
+```
+Machine Learning With RHadoop
+```
+library(MASS)
+data(cats)
+X = matrix(cats$Bwt)
+y  = matrix(cats$Hwt)
+model = lm(y~x)
+summary(model)
+          Estimate Std. Error t value Pr(>|t|)    
+plot(y~X)
+abline(model, col="red")
+Sys.setenv(HADOOP_CMD="/usr/bin/hadoop")
+Sys.setenv(HADOOP_STREAMING="/usr/lib/hadoop-mapreduce/hadoop-> streaming-2.3.0-cdh5.1.0.jar")
+library(rmr2)
+rmr.options(backend="local")
+X = matrix(cats$Bwt)
+X.index = to.dfs(cbind(1:nrow(X), X))
+y = as.matrix(cats$Hwt)
+Sum = 
+  function(., YY) 
+    keyval(1, list(Reduce('+', YY)))
+XtX = 
+   values(
+     from.dfs(
+       mapreduce(
+         input = X.index,
+         map = 
+           function(., Xi) {
+             Xi = Xi[,-1]
+             keyval(1, list(t(Xi) %*% Xi))},
+         reduce = Sum,
+         combine = TRUE)))[[1]]
+   values(
+     from.dfs(
+       mapreduce(
+         input = X.index,
+         map = function(., Xi) {
+           yi = y[Xi[,1],]
+           Xi = Xi[,-1]
+           keyval(1, list(t(Xi) %*% yi))},
+         reduce = Sum,
+         combine = TRUE)))[[1]]
+solve(XtX, Xty)
+
+```
+

@@ -1,0 +1,121 @@
+---
+title: "chapter8"
+author: "David Chiu"
+date: "Tuesday, January 13, 2015"
+output: html_document
+---
+Classifying Data With Bagging Method
+
+```
+install.packages("adabag")
+library(adabag)
+churn.bagging = bagging(churn ~ ., data=trainset, mfinal=10)
+churn.bagging$importance
+churn.predbagging= predict.bagging(churn.bagging, newdata=testset)
+churn.predbagging$confusion
+churn.predbagging$error
+install.packages("ipred")
+library(ipred)
+churn.bagging = bagging(churn ~ ., data = trainset, coob = T)
+churn.bagging
+mean(predict(churn.bagging) != trainset$churn)
+churn.prediction = predict(churn.bagging, newdata=testset, type="class")
+prediction.table = table(churn.prediction, testset$churn)
+```
+Performing Cross Validation With Bagging Method 
+```
+churn.baggingcv = bagging.cv(churn ~ ., v=10, data=trainset, mfinal=10)
+churn.baggingcv$confusion
+churn.baggingcv$error
+help(bagging.cv)
+```
+Classifying Data With Boosting Method
+```
+churn.boost = boosting(churn ~.,data=trainset,mfinal=10, coeflearn="Freund", boos=FALSE , control=rpart.control(maxdepth=3))
+churn.boost.pred = predict.boosting(churn.boost,newdata=testset)
+churn.boost.pred$confusion
+churn.boost.pred$error
+install.packages("mboost")
+library(mbbost)
+levels(trainset$churn) = list("0"="no", "1"="yes")
+trainset$churn = as.numeric(trainset$churn)
+churn.mboost = mboost(churn ~ ., data=trainset,  control = boost_control(mstop = 10))
+summary(churn.mboost)
+par(mfrow=c(2,2))
+plot(churn.mboost)
+```
+Performing Cross Validation with Boosting Method
+```
+churn.boostcv = boosting.cv(churn ~ ., v=10, data=trainset, mfinal=5,control=rpart.control(cp=0.01))
+churn.boostcv$confusion
+churn.boostcv$error
+help(boosting.cv)
+```
+Calculating Margins of Classifier
+```
+boost.margins = margins(churn.boost, trainset)
+boost.pred.margins = margins(churn.boost.pred, testset)
+plot(sort(boost.margins[[1]]), (1:length(boost.margins[[1]]))/length(boost.margins[[1]]), type="l",xlim=c(-1,1),main="Boosting: Margin cumulative distribution graph", xlab="margin", ylab="% observations", col = "blue")
+lines(sort(boost.pred.margins[[1]]), (1:length(boost.pred.margins[[1]]))/length(boost.pred.margins[[1]]), type="l", col = "green")
+abline(v=0, col="red",lty=2)
+bagging.margins = margins(churn.bagging, trainset)
+bagging.pred.margins = margins(churn.predbagging, testset)
+plot(sort(bagging.margins[[1]]), (1:length(bagging.margins[[1]]))/length(bagging.margins[[1]]), type="l",xlim=c(-1,1),main="Bagging: Margin cumulative distribution graph", xlab="margin", ylab="% observations", col = "blue")
+lines(sort(bagging.pred.margins[[1]]), (1:length(bagging.pred.margins[[1]]))/length(bagging.pred.margins[[1]]), type="l", col = "green")
+abline(v=0, col="red",lty=2)
+```
+Calculating Error Evolution of Ensemble Method
+```
+boosting.evol.train = errorevol(churn.boost, trainset)
+boosting.evol.test = errorevol(churn.boost, testset)
+plot(boosting.evol.test$error, type = "l", ylim = c(0, 1),
+      main = "Boosting error versus number of trees", xlab = "Iterations",
+      ylab = "Error", col = "red", lwd = 2)
+lines(boosting.evol.train$error, cex = .5, col = "blue", lty = 2, lwd = 2)
+legend("topright", c("test", "train"), col = c("red", "blue"), lty = 1:2, lwd = 2)
+bagging.evol.train = errorevol(churn.bagging, trainset)
+bagging.evol.test = errorevol(churn.bagging, testset)
+plot(bagging.evol.test$error, type = "l", ylim = c(0, 1),
+      main = "Bagging error versus number of trees", xlab = "Iterations",
+      ylab = "Error", col = "red", lwd = 2)
+lines(bagging.evol.train$error, cex = .5, col = "blue", lty = 2, lwd = 2)
+legend("topright", c("test", "train"), col = c("red", "blue"), lty = 1:2, lwd = 2)
+help(predict.bagging)
+help(predict.boosting)
+```
+Classifying Data With Random Forest
+```
+install.packages("randomForest")
+library(randomForest)
+churn.rf = randomForest(churn ~ ., data = trainset, importance = T)
+churn.rf
+churn.prediction = predict(churn.rf, testset)
+table(churn.prediction, testset$churn)
+importance(churn.rf)
+varImpPlot(churn.rf)
+margins.rf=margin(churn.rf,trainset)
+plot(margins.rf)
+hist(margins.rf,main="Margins of Random Forest for churn dataset")
+boxplot(margins.rf~trainset$churn, main="Margins of Random Forest for churn dataset by class")
+install.packages(“party”)
+library(party)
+churn.cforest = cforest(churn ~ ., data = trainset, controls=cforest_unbiased(ntree=1000, mtry=5))
+churn.cforest
+churn.cforest.prediction = predict(churn.cforest, testset, OOB=TRUE, type = "response")
+table(churn.cforest.prediction, testset$churn)
+```
+Estimating Prediction Error of Different Classifiers
+```
+churn.bagging= errorest(churn ~ ., data = trainset, model = bagging)
+churn.bagging
+install.packages("ada")
+library(ada)
+churn.boosting= errorest(churn ~ ., data = trainset, model = ada)
+churn.boosting
+churn.rf= errorest(churn ~ ., data = trainset, model = randomForest)
+churn.rf
+churn.predict = function(object, newdata) {predict(object, newdata = newdata, type = "class")}
+churn.tree= errorest(churn ~ ., data = trainset, model = rpart,predict = churn.predict)
+churn.tree
+
+```

@@ -1,0 +1,149 @@
+---
+title: "chapter3"
+author: "David Chiu"
+date: "Tuesday, January 13, 2015"
+output: html_document
+---
+Data Sampling in R
+```
+sample(1:10)
+sample(1:10, size = 5)
+sample(c(0,1), 10, replace = TRUE)
+sample.int(20, 12)
+```
+Probability Distribution in R
+```
+dnorm(0)
+dnorm(0,mean=3,sd=5)
+curve(dnorm,-3,3)
+pnorm(1.5)
+pnorm(1.5, lower.tail=FALSE)
+curve(pnorm(x), -3,3)
+qnorm(0.5)
+qnorm(pnorm(0))
+runif(10,0,5)
+help(TDist)
+help(Binomial)
+help(Chisquare)
+help(distributions)
+```
+Univariate Descriptive Statistics in R 
+```
+data(mtcars)
+range(mtcars$mpg)
+length(mtcars$mpg)
+mean(mtcars$mpg)
+median(mtcars$mpg)
+sd(mtcars$mpg)
+var(mtcars$mpg)
+sd(mtcars$mpg) ^ 2
+IQR(mtcars$mpg)
+quantile(mtcars$mpg,0.67)
+max(mtcars$mpg)
+min(mtcars$mpg)
+cummax(mtcars$mpg)
+cummin(mtcars$mpg)
+summary(mtcars)
+table(mtcars$cyl)
+stem(mtcars$mpg)
+library(ggplot2)
+qplot(mtcars$mpg, binwidth=2)
+mode <- function(x) {
+temp <- table(x)
+names(temp)[temp == max(temp)]
+}
+x = c(1,2,3,3,3,4,4,5,5,5,6)
+mode(x)
+```
+Correlations and Multivariate Analysis
+```
+cov(mtcars[1:3])
+cor(mtcars[1:3])
+library(reshape2)
+qplot(x=Var1, y=Var2, data=melt(cor(mtcars[1:3])), fill=value, geom="tile")
+```
+Linear Regression and Multivariate Analysis 
+```
+lmfit = lm(mtcars$mpg ~ mtcars$cyl)
+lmfit
+summary(lmfit) 
+anova(lmfit)
+lmfit = lm(mtcars$mpg ~ mtcars$cyl)
+plot(mtcars$cyl, mtcars$mpg)
+abline(lmfit)
+```
+Exact Binomial Test
+```
+binom.test(x=92, n=315, p=1/6)
+?binom.test
+```
+Student's t-Test
+```
+boxplot(mtcars$mpg, mtcars$mpg[mtcars$am==0], ylab = "mpg", names=c("overall","automobile"))
+abline(h=mean(mtcars$mpg),lwd=2, col="red")
+abline(h=mean(mtcars$mpg[mtcars$am==0]),lwd=2, col="blue")
+mpg.mu = mean(mtcars$mpg)
+mpg_am = mtcars$mpg[mtcars$am == 0]
+t.test(mpg_am,mu = mpg.mu)
+
+boxplot(mtcars$mpg~mtcars$am,ylab='mpg',names=c('automatic','manual'))
+abline(h=mean(mtcars$mpg[mtcars$am==0]),lwd=2, col="blue")
+abline(h=mean(mtcars$mpg[mtcars$am==1]),lwd=2, col="red")
+t.test(mtcars$mpg~mtcars$am)
+?t.test
+```
+Kolmogorov-Smirnov Test
+```
+x = rnorm(50)
+ks.test(x,"pnorm")
+set.seed(3)
+x <- runif(n=20, min=0, max=20)
+x
+y <- runif(n=20, min=0, max=20)
+y
+plot(ecdf(x), do.points = FALSE, verticals=T, xlim=c(0, 20))
+lines(ecdf(y), lty=3, do.points = FALSE, verticals=T)
+ks.test(x,y)
+?ks.test
+?ecdf
+```
+Wilcoxon Rank Sum and Signed Rank Test
+```
+boxplot(mtcars$mpg~mtcars$am,ylab='mpg',names=c('automatic','manual'))
+wilcox.test(mpg ~ am, data=mtcars)
+? wilcox.test
+```
+Pearson's Chi-squared Test
+```
+ftable = table(mtcars$am, mtcars$gear)
+ftable
+mosaicplot(ftable, main="Number of Forward Gears Within Automatic and Manual Cars", color = TRUE)
+chisq.test(ftable)
+? chisq.test
+```
+One-way ANOVA 
+```
+boxplot(mtcars$mpg~factor(mtcars$gear),xlab='gear',ylab='mpg')
+oneway.test(mtcars$mpg~factor(mtcars$gear))
+mtcars.aov <- aov(mtcars$mpg ~ as.factor(mtcars$gear))
+summary(mtcars.aov)   
+model.tables(mtcars.aov, "means")
+mtcars_posthoc =TukeyHSD(mtcars.aov)
+mtcars_posthoc
+as.factor(mtcars$gear)
+```
+Two-way ANOVA 
+```
+par(mfrow=c(1,2))
+boxplot(mtcars$mpg~mtcars$gear,subset=(mtcars$am==0),xlab='gear', ylab = "mpg",main='automatic')
+boxplot(mtcars$mpg~mtcars$gear,subset=(mtcars$am==1),xlab='gear', ylab = "mpg", main='manual')
+boxplot(mtcars$mpg~factor(mtcars$gear)* factor(mtcars$am),xlab='gear * transmission', ylab = "mpg",main='Boxplot of mpg by gear * transmission')
+interaction.plot(mtcars$gear, mtcars$am, mtcars$mpg, type="b", col=c(1:3),leg.bty="o", leg.bg="beige", lwd=2, pch=c(18,24,22), xlab="Number of Gears", ylab="Mean Miles Per Gallon", main="Interaction Plot")
+mpg_anova2 = aov(mtcars$mpg~factor(mtcars$gear)*factor(mtcars$am))
+summary(mpg_anova2)   
+TukeyHSD(mpg_anova2)
+par(mfrow=c(1,2))
+plot(TukeyHSD(mpg_anova2))
+?MANOVA
+```
+
