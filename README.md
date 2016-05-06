@@ -20,7 +20,19 @@ Each Chapter contains code files. You will see code something similler to the fo
 <meta name="author" content="David Chiu" />
 
 
-<title>chapter1</title>
+<title>chapter1</title
+<body>
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
 
 ##Related Swift Products:
 * [Learning Data Mining with R](https://www.packtpub.com/big-data-and-business-intelligence/learning-data-mining-r?utm_source=github&utm_medium=repository&utm_campaign=9781783982103)
