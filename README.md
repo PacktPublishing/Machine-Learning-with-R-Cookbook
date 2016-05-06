@@ -35,7 +35,7 @@ Each Chapter contains code files. You will see code something similler to the fo
 </body>
 </html>
 ```
-##Related Swift Products:
+##Related R Products:
 * [Learning Data Mining with R](https://www.packtpub.com/big-data-and-business-intelligence/learning-data-mining-r?utm_source=github&utm_medium=repository&utm_campaign=9781783982103)
 * [Mastering Machine Learning with R](https://www.packtpub.com/big-data-and-business-intelligence/mastering-machine-learning-r?utm_source=github&utm_medium=repository&utm_campaign=9781783984527)
 * [Machine Learning with R - Second Edition](https://www.packtpub.com/big-data-and-business-intelligence/machine-learning-r-second-edition?utm_source=github&utm_medium=repository&utm_campaign=9781784393908)
